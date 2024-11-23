@@ -1,36 +1,84 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# General references: https://help.github.com/articles/ignoring-files/
 
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
 
-# testing
+# Testing and coverage
 /coverage
 
-# next.js
+# Next.js build output
 /.next/
 /out/
 
-# production
+# Production build directory
 /build
 
-# misc
+# Miscellaneous system and configuration files
 .DS_Store
 *.pem
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*.log
 
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
+# Local environment files
+.env
+.env.*.local
+.env.development
+.env.production
+.env.test
+.env.local
 
-# vercel
+# Vercel deployment configuration
 .vercel
 
-# typescript
+# TypeScript build artifacts
 *.tsbuildinfo
 next-env.d.ts
+
+# Static file cache
+.cache
+
+# Temporary files
+*.tmp
+*.temp
+
+# Linting and formatting
+.eslintcache
+.stylelintcache
+
+# IDE backups and artifacts
+*.iml
+*.pyc
+*.pyo
+*.pyd
+*.bak
+*.orig
+*.rej
+
+# OS-specific files
+*.~lock.*
+~$*
+
+# Additional tools and configs
+.nyc_output
+/.expo/
+*.expo*
+.expo-shared
+
+# Prettier-specific files
+.prettier-cache
+
+# Miscellaneous build tools
+/vite-plugin-checker-runtime-*
+turbo.log
