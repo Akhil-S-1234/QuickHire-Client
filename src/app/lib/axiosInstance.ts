@@ -1,4 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+// import { setBlock } from '../../store/slices/authSlice';
+// import { useDispatch } from 'react-redux';
 
 interface ErrorResponse {
   status: string;
@@ -15,33 +17,21 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // This ensures cookies (session cookie) are sent with requests
-
 });
-
-
-
-// // axiosInstance.interceptors.response.use(
-// //   (response: AxiosResponse) => response, // Return the response directly
-// //   (error: AxiosError) => {
-// //     // Handle errors globally (e.g., logging out on 401)
-// //     if (error.response?.status === 401) {
-// //       // Perform action on unauthorized access
-// //     }
-// //     return Promise.reject(error);
-// //   }
-// // );
 
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response, // Return the response directly
   async (error: AxiosError<ErrorResponse>) => {
-    if (error.response?.status === 401) {
-
-      if (error.response.data?.message === 'Access token is missing' || error.response.data?.message === 'Invalid or expired access token') {
+    const { response, config } = error;
+    
+    // Handle 401 Unauthorized errors
+    if (response?.status === 401) {
+      if (
+        response.data?.data?.retry 
+      ) {
         try {
-
-          axiosInstance.get('/api/users/refreshtoken')
-
-          const originalRequest: InternalAxiosRequestConfig | undefined = error.config;
+          
+          const originalRequest: InternalAxiosRequestConfig | undefined = config;
 
           if (originalRequest) {
             return axios(originalRequest);
@@ -49,18 +39,32 @@ axiosInstance.interceptors.response.use(
             console.error('Original request is undefined');
             return Promise.reject(error);
           }
- 
         } catch (refreshError) {
           // Handle refresh token failure (e.g., redirect to login page)
           console.error('Token refresh failed:', refreshError);
+          // You might redirect to login page here, for example:
+          // window.location.href = '/login';
         }
+      } else {
+        console.log('logout')
+        // const store = (await import('../../store/store')).store;
+        // const { logoutUser } = await import('../../store/slices/authSlice');
+        // store.dispatch(logoutUser());
       }
     }
 
-    // If error is not handled, reject the promise
+    // Handle 403 Forbidden errors (e.g., user or recruiter is blocked)
+    if (response?.status === 403) {
+      if (response.data?.message === 'Your account is blocked') {
+        const store = (await import('../../store/store')).store;
+        const { setBlock } = await import('../../store/slices/userAuthSlice');
+        store.dispatch(setBlock(true));        
+      }
+    }
+
+    // If the error is not handled, reject the promise
     return Promise.reject(error);
   }
 );
-
 
 export default axiosInstance;

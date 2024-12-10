@@ -6,7 +6,7 @@ import Link from 'next/link';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import { setCredentials } from '../../../store/slices/recruiterAuthSlice';
+import { setRecruiterCredentials } from '../../../store/slices/recruiterAuthSlice';
 import AxiosInstance from '../../lib/axiosInstance';
 
 const Login: React.FC = () => {
@@ -37,7 +37,7 @@ const Login: React.FC = () => {
 
       if (response.data.status === 'success') {
         const { recruiter } = response.data.data;
-        dispatch(setCredentials({ recruiter }));
+        dispatch(setRecruiterCredentials({ recruiter }));
         router.push('/recruiter/home'); // Redirect to recruiter dashboard or any recruiter-specific page
       }
     } catch (err) {

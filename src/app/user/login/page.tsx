@@ -7,7 +7,7 @@ import Link from 'next/link';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import { setCredentials } from '../../../store/slices/authSlice';
+import { setUserCredentials, setBlock } from '../../../store/slices/userAuthSlice';
 import AxiosInstance from '../../lib/axiosInstance';
 import { signIn, getSession } from 'next-auth/react'
 
@@ -26,7 +26,7 @@ const Login: React.FC = () => {
 
     try {
       // Trigger Google sign-in
-      const result = await signIn("google", { callbackUrl: '/' }); // Specify the callback URL
+      const result = await signIn("google", { callbackUrl: '/user/home' }); // Specify the callback URL
 
       if (result?.error) {
         console.error('Sign-in failed:', result.error);
@@ -57,12 +57,12 @@ const Login: React.FC = () => {
           profilePicture: session.user.image ?? '',
         };
 
-        dispatch(setCredentials({ user }));
+        dispatch(setUserCredentials({ user }));
         console.log('Sign-in successful:', result);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('Axios error:', error.message);
+        dispatch(setBlock(true))
       } else {
         console.error('Error:', error);
       }
@@ -94,8 +94,8 @@ const Login: React.FC = () => {
       if (response.data.status === 'success') {
         console.log(response.data, 'data')
         const { user } = response.data.data
-        dispatch(setCredentials({ user }))
-        router.push('/');
+        dispatch(setUserCredentials({ user }))
+        router.push('/user/home');
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
@@ -187,4 +187,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default  Login;

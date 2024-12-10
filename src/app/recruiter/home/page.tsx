@@ -2,6 +2,8 @@
 
 import Image from "next/image"
 import Header from "../components/Header"
+import Link from 'next/link';
+
 
 export default function Component() {
   return (
@@ -15,11 +17,12 @@ export default function Component() {
               Find your next great{" "}
               <span className="text-[#5D5FEF]">hire</span> today!
             </h1>
+            <Link href='/recruiter/postjob'>
             <button
               className="mt-8 bg-[#5D5FEF] px-8 py-3 text-lg font-semibold text-white rounded-md hover:bg-[#5558E6] transition-colors duration-200"
             >
               Post Job
-            </button>
+            </button></Link>
           </div>
           <div className="relative h-[300px] w-full max-w-[500px] md:h-[400px]">
             <Image

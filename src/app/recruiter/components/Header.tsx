@@ -13,9 +13,9 @@ const Header = () => {
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated } = useSelector((state: RootState) => state.recruiterAuth);
-  const profilePicture = useSelector((state: RootState) => state.auth.user?.profilePicture)
+  // const profilePicture = useSelector((state: RootState) => state.auth.user?.profilePicture)
 
-  console.log(profilePicture)
+  // console.log(profilePicture)
   const state = useSelector((state: RootState) => state)
 
   console.log(state, 'tttt')
@@ -50,7 +50,7 @@ const Header = () => {
               onMouseEnter={() => setJobsDropdownOpen(true)}
               onMouseLeave={() => setJobsDropdownOpen(false)}
             >
-              <Link href="/jobs" className="text-md font-medium focus:outline-none pb-2">
+              <Link href="/recruiter/jobs" className="text-md font-medium focus:outline-none pb-2">
                 Jobs
               </Link>
               {/* Invisible bridge + dropdown container */}
@@ -81,7 +81,8 @@ const Header = () => {
                 <Link href="/recruiter/profile">
                   <div className="flex items-center">
                     <Image
-                      src={profilePicture || "https://i.pinimg.com/564x/47/09/80/470980b112a44064cd88290ac0edf6a6.jpg"}
+                      src={ "https://i.pinimg.com/564x/47/09/80/470980b112a44064cd88290ac0edf6a6.jpg"}
+                      // src={profilePicture || "https://i.pinimg.com/564x/47/09/80/470980b112a44064cd88290ac0edf6a6.jpg"}
                       alt="Profile"
                       width={32} // Width in pixels (for "w-8")
                       height={32} // Height in pixels (for "h-8")

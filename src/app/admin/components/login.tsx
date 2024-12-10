@@ -7,6 +7,8 @@ import { Eye, EyeOff, Lock, User } from 'lucide-react'
 import Image from 'next/image'
 import axiosInstance from "../../lib/axiosInstance"
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { setAdminCredentials } from '../../../store/slices/adminAuthSlice';
 
 
 export function AdminLogin() {
@@ -16,7 +18,7 @@ export function AdminLogin() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter(); // Initialize useRouter
-
+ const dispatch = useDispatch()
 
   // Email validation function
   const validateEmail = (email: string) => {
@@ -53,6 +55,7 @@ export function AdminLogin() {
 
       // Handle success (You can redirect to the dashboard, save token, etc.)
       console.log('Login successful:', response.data)
+      dispatch(setAdminCredentials({ admin: response.data.data }))
 
       // Optionally clear form
       setEmail("")

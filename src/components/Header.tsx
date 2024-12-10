@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { logoutUser } from '../store/slices/authSlice';
+import { logoutUser } from '../store/slices/userAuthSlice';
 import { RootState, AppDispatch } from '../store/store';
 import DropdownMenu from './DropDown';
 
@@ -12,10 +12,12 @@ const Header = () => {
   const [isJobsDropdownOpen, setJobsDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const profilePicture = useSelector((state: RootState) => state.auth.user?.profilePicture)
+  const { isAuthenticated } = useSelector((state: RootState) => state.userAuth);
+  const profilePicture = useSelector((state: RootState) => state.userAuth.user?.profilePicture)
 
   const state = useSelector((state: RootState) => state)
+
+  console.log('State',state)
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -46,7 +48,7 @@ const Header = () => {
               onMouseEnter={() => setJobsDropdownOpen(true)}
               onMouseLeave={() => setJobsDropdownOpen(false)}
             >
-              <Link href="/jobs" className="text-md font-medium focus:outline-none pb-2">
+              <Link href="/user/jobs" className="text-md font-medium focus:outline-none pb-2">
                 Jobs
               </Link>
               {/* Invisible bridge + dropdown container */}

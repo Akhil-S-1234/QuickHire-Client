@@ -4,6 +4,7 @@ import { Work_Sans } from 'next/font/google'
 import "./globals.css";
 
 import { ReduxProvider } from '../store/provider';
+import BlockModal from "../components/BlockModal";
 
 const workSans = Work_Sans({
   subsets: ["latin"], // Specify the subset for the font
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body className={`${workSans.variable} antialiased`}>
         <ReduxProvider>
           {children}
+          <BlockModal />
         </ReduxProvider>
       </body>
     </html>

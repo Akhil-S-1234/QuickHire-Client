@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { User, Mail, Phone, Briefcase, Building, Camera, Edit2 } from 'lucide-react'
 import axiosInstance from '../../lib/axiosInstance'
+import Header from "../components/Header"
+
 
 interface ProfileData {
   name: string
@@ -83,6 +85,8 @@ export default function RedesignedRecruiterProfile() {
   }
 
   return (
+    <>
+    <Header/>
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="md:flex">
@@ -199,6 +203,7 @@ export default function RedesignedRecruiterProfile() {
         )}
       </div>
     </div>
+    </>
   )
 }
 

@@ -91,6 +91,8 @@ export function RecruiterManagement() {
 
     })
 
+    if(!confirmed) return
+
     try {
       await axiosInstance.put(`/api/admin/recruiters/${recruiterId}`, { isBlocked: !isBlocked })
       setRecruiters(recruiters.map(recruiter =>

@@ -3,12 +3,11 @@ import Image from 'next/image';
 import { ToastContainer, toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import Education from '../components/Education';
-import { withAuth } from '../components/isAuth';
 import Experience from '../components/Experience';
 import React, { useState, useEffect, ReactNode } from 'react';
 import axiosInstance from '../../../app/lib/axiosInstance';
 import { Edit, MapPin, Phone, Mail, Upload, Plus, X } from 'lucide-react';
-import { setImage } from '../../../store/slices/authSlice'
+import { setImage } from '../../../store/slices/userAuthSlice'
 import Header from '../../../components/Header'
 
 
@@ -104,7 +103,7 @@ const ResumeProfile = () => {
       }
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching profile data:", error);
+      // console.error("Error fetching profile data:", error);
       setLoading(false);
     }
   };
@@ -573,4 +572,5 @@ const ResumeProfile = () => {
   );
 };
 
-export default withAuth(ResumeProfile);
+// export default withAuth(ResumeProfile);
+export default ResumeProfile

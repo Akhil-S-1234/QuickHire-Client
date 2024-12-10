@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { signIn, getSession } from 'next-auth/react'
 import { useDispatch } from "react-redux";
-import { setCredentials } from "../../../store/slices/authSlice";
+import { setUserCredentials } from "../../../store/slices/userAuthSlice";
 
 import GoogleLoginButton from '../../../components/GoogleLoginButton'
 
@@ -72,7 +72,7 @@ const CreateAccount: React.FC = () => {
                     profilePicture: session.user.image ?? '',
                 };
 
-                dispatch(setCredentials({ user }));
+                dispatch(setUserCredentials({ user }));
                 console.log('Sign-in successful:', result);
             }
         } catch (error) {

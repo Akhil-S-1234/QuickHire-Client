@@ -1,7 +1,7 @@
 // store/slices/authSlice.ts
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios'
-import AxiosInstance  from '../../app/lib/axiosInstance';
+import AxiosInstance from '../../app/lib/axiosInstance';
 
 
 interface User {
@@ -17,6 +17,7 @@ interface User {
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  isBlocked: boolean;
 }
 
 
@@ -33,22 +34,28 @@ export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, { reject
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
+  isBlocked: false
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<{ user: User; }>) => {
+    setUserCredentials: (state, action: PayloadAction<{ user: User; }>) => {
       const { user } = action.payload;
       state.user = user;
       state.isAuthenticated = true;
     },
     setImage: (state, action: PayloadAction<{ image: string; }>) => {
       const { image } = action.payload;
-      if(state.user)
-      state.user.profilePicture = image;
+      if (state.user)
+        state.user.profilePicture = image;
     },
+    setBlock: (state, action: PayloadAction<boolean>) => {
+      state.user = null;
+      state.isAuthenticated = false
+      state.isBlocked = action.payload
+    }
 
   },
   extraReducers: (builder) => {
@@ -60,5 +67,5 @@ const authSlice = createSlice({
   }
 });
 
-export const { setCredentials, setImage } = authSlice.actions;
+export const { setUserCredentials, setImage, setBlock } = authSlice.actions;
 export default authSlice.reducer;

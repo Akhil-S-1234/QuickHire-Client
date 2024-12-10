@@ -39,7 +39,7 @@ const recruiterAuthSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<{ recruiter: Recruiter; }>) => {
+    setRecruiterCredentials: (state, action: PayloadAction<{ recruiter: Recruiter; }>) => {
       const { recruiter } = action.payload;
       state.recruiter = recruiter;
       state.isAuthenticated = true;
@@ -64,5 +64,5 @@ const recruiterAuthSlice = createSlice({
   }
 });
 
-export const { setCredentials } = recruiterAuthSlice.actions;
+export const { setRecruiterCredentials } = recruiterAuthSlice.actions;
 export default recruiterAuthSlice.reducer;
