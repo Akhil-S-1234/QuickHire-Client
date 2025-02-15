@@ -1,354 +1,291 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { useRouter } from 'next/navigation'
-import AxiosInstance from '../../lib/axiosInstance';
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { motion } from 'framer-motion'
+import AxiosInstance from '../../lib/axiosInstance'
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 
-
-interface FormErrors {
-    [key: string]: string
-}
+const formSchema = z.object({
+  title: z.string().min(1, { message: "Job title is required" }),
+  description: z.string().min(1, { message: "Job description is required" }),
+  company: z.object({
+    name: z.string().min(1, { message: "Company name is required" }),
+    logo: z.string().url({ message: "Invalid URL format" }),
+  }),
+  location: z.string().min(1, { message: "Location is required" }),
+  type: z.string().min(1, { message: "Job type is required" }),
+  salary: z.object({
+    min: z.string().min(1, { message: "Minimum salary is required" }),
+    max: z.string().min(1, { message: "Maximum salary is required" }),
+  }),
+  experience: z.object({
+    minYears: z.string().min(1, { message: "Minimum years of experience is required" }),
+    maxYears: z.string().optional(),
+  }),
+  requirements: z.object({
+    education: z.string().min(1, { message: "Education requirement is required" }),
+    skills: z.string().min(1, { message: "At least one skill is required" }),
+    certifications: z.string().optional(),
+  }),
+})
 
 export default function JobPostingForm() {
-    const router = useRouter()
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        company: {
-            name: '',
-            logo: '',
-        },
-        location: '',
-        type: '',
-        salary: {
-            min: '',
-            max: '',
-        },
-        experience: {
-            minYears: '',
-            maxYears: '',
-        },
-        requirements: {
-            education: '',
-            skills: '',
-            certifications: '',
-        },
-    })
-    const [errors, setErrors] = useState<FormErrors>({})
+  const router = useRouter()
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      company: { name: "", logo: "" },
+      location: "",
+      type: "",
+      salary: { min: "", max: "" },
+      experience: { minYears: "", maxYears: "" },
+      requirements: { education: "", skills: "", certifications: "" },
+    },
+  })
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }))
-        // Clear the error when the user starts typing
-        setErrors((prevErrors) => ({ ...prevErrors, [name]: '' }))
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await AxiosInstance.post('/api/recruiter/postjob', { job: values });
+      if (response.data.status === 'success') {
+        router.push('/recruiter/jobs')
+      } else {
+        console.error(response.data.message)
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error)
     }
+  }
 
-    const handleNestedChange = (e: React.ChangeEvent<HTMLInputElement>, category: string) => {
-        const { name, value } = e.target
-        setFormData((prevData: any) => ({
-            ...prevData,
-            [category]: {
-                ...prevData[category as keyof typeof prevData],
-                [name]: value,
-            },
-        }))
-        // Clear the error when the user starts typing
-        setErrors((prevErrors) => ({ ...prevErrors, [`${category}.${name}`]: '' }))
-    }
-
-    const validateForm = (): boolean => {
-        const newErrors: FormErrors = {}
-
-        // Validate title
-        if (!formData.title.trim()) {
-            newErrors.title = 'Job title is required'
-        }
-
-        // Validate description
-        if (!formData.description.trim()) {
-            newErrors.description = 'Job description is required'
-        }
-
-        // Validate company name
-        if (!formData.company.name.trim()) {
-            newErrors['company.name'] = 'Company name is required'
-        }
-
-        // Validate company logo
-        if (!formData.company.logo.trim()) {
-            newErrors['company.logo'] = 'Company logo URL is required'
-        } else if (!isValidUrl(formData.company.logo)) {
-            newErrors['company.logo'] = 'Invalid URL format'
-        }
-
-        // Validate location
-        if (!formData.location.trim()) {
-            newErrors.location = 'Location is required'
-        }
-
-        // Validate job type
-        if (!formData.type) {
-            newErrors.type = 'Job type is required'
-        }
-
-        // Validate salary
-        if (!formData.salary.min || !formData.salary.max) {
-            newErrors['salary.min'] = 'Both minimum and maximum salary are required'
-        } else if (Number(formData.salary.min) > Number(formData.salary.max)) {
-            newErrors['salary.min'] = 'Minimum salary cannot be greater than maximum salary'
-        }
-
-        // Validate experience
-        if (!formData.experience.minYears) {
-            newErrors['experience.minYears'] = 'Minimum years of experience is required'
-        } else if (formData.experience.maxYears && Number(formData.experience.minYears) > Number(formData.experience.maxYears)) {
-            newErrors['experience.minYears'] = 'Minimum experience cannot be greater than maximum experience'
-        }
-
-        // Validate education
-        if (!formData.requirements.education.trim()) {
-            newErrors['requirements.education'] = 'Education requirement is required'
-        }
-
-        // Validate skills
-        if (!formData.requirements.skills.trim()) {
-            newErrors['requirements.skills'] = 'At least one skill is required'
-        }
-
-        setErrors(newErrors)
-        return Object.keys(newErrors).length === 0
-    }
-
-    const isValidUrl = (url: string) => {
-        try {
-            new URL(url)
-            return true
-        } catch {
-            return false
-        }
-    }
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (validateForm()) {
-            console.log(formData)
-            const response = await AxiosInstance.post('/api/recruiter/postjob', { job: formData });
-            if (response.data.status === 'success') {
-                router.push('/recruiter/jobs')
-            } else {
-                console.error(response.data.message)
-            }
-
-
-        }
-    }
-
-    const inputClass = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-    const errorClass = "text-red-500 text-sm mt-1"
-
-    return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-6">Post a New Job</h1>
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">Job Title</label>
-                    <input
-                        type="text"
-                        id="title"
-                        name="title"
-
-                        value={formData.title}
-                        onChange={handleChange}
-                        className={`${inputClass} ${errors.title ? 'border-red-500' : ''}`}
-                    />
-                    {errors.title && <p className={errorClass}>{errors.title}</p>}
-                </div>
-
-                <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">Job Description</label>
-                    <textarea
-                        id="description"
-                        name="description"
-
-                        value={formData.description}
-                        onChange={handleChange}
-                        rows={4}
-                        className={`${inputClass} ${errors.description ? 'border-red-500' : ''}`}
-                    ></textarea>
-                    {errors.description && <p className={errorClass}>{errors.description}</p>}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="company.name" className="block text-sm font-medium text-gray-700">Company Name</label>
-                        <input
-                            type="text"
-                            id="company.name"
-                            name="name"
-
-                            value={formData.company.name}
-                            onChange={(e) => handleNestedChange(e, 'company')}
-                            className={`${inputClass} ${errors['company.name'] ? 'border-red-500' : ''}`}
-                        />
-                        {errors['company.name'] && <p className={errorClass}>{errors['company.name']}</p>}
-                    </div>
-                    <div>
-                        <label htmlFor="company.logo" className="block text-sm font-medium text-gray-700">Company Logo URL</label>
-                        <input
-                            type="url"
-                            id="company.logo"
-                            name="logo"
-
-                            value={formData.company.logo}
-                            onChange={(e) => handleNestedChange(e, 'company')}
-                            className={`${inputClass} ${errors['company.logo'] ? 'border-red-500' : ''}`}
-                        />
-                        {errors['company.logo'] && <p className={errorClass}>{errors['company.logo']}</p>}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
-                        <input
-                            type="text"
-                            id="location"
-                            name="location"
-
-                            value={formData.location}
-                            onChange={handleChange}
-                            className={`${inputClass} ${errors.location ? 'border-red-500' : ''}`}
-                        />
-                        {errors.location && <p className={errorClass}>{errors.location}</p>}
-                    </div>
-                    <div>
-                        <label htmlFor="type" className="block text-sm font-medium text-gray-700">Job Type</label>
-                        <select
-                            id="type"
-                            name="type"
-
-                            value={formData.type}
-                            onChange={handleChange}
-                            className={`${inputClass} ${errors.type ? 'border-red-500' : ''}`}
-                        >
-                            <option value="">Select job type</option>
-                            <option value="Full-time">Full-time</option>
-                            <option value="Part-time">Part-time</option>
-                            <option value="Contract">Contract</option>
-                        </select>
-                        {errors.type && <p className={errorClass}>{errors.type}</p>}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="salary.min" className="block text-sm font-medium text-gray-700">Minimum Salary</label>
-                        <input
-                            type="number"
-                            id="salary.min"
-                            name="min"
-
-                            value={formData.salary.min}
-                            onChange={(e) => handleNestedChange(e, 'salary')}
-                            className={`${inputClass} ${errors['salary.min'] ? 'border-red-500' : ''}`}
-                        />
-                        {errors['salary.min'] && <p className={errorClass}>{errors['salary.min']}</p>}
-                    </div>
-                    <div>
-                        <label htmlFor="salary.max" className="block text-sm font-medium text-gray-700">Maximum Salary</label>
-                        <input
-                            type="number"
-                            id="salary.max"
-                            name="max"
-
-                            value={formData.salary.max}
-                            onChange={(e) => handleNestedChange(e, 'salary')}
-                            className={`${inputClass} ${errors['salary.max'] ? 'border-red-500' : ''}`}
-                        />
-                        {errors['salary.max'] && <p className={errorClass}>{errors['salary.max']}</p>}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="experience.minYears" className="block text-sm font-medium text-gray-700">Minimum Years of Experience</label>
-                        <input
-                            type="number"
-                            id="experience.minYears"
-                            name="minYears"
-
-                            value={formData.experience.minYears}
-                            onChange={(e) => handleNestedChange(e, 'experience')}
-                            className={`${inputClass} ${errors['experience.minYears'] ? 'border-red-500' : ''}`}
-                        />
-                        {errors['experience.minYears'] && <p className={errorClass}>{errors['experience.minYears']}</p>}
-                    </div>
-                    <div>
-                        <label htmlFor="experience.maxYears" className="block text-sm font-medium text-gray-700">Maximum Years of Experience</label>
-                        <input
-                            type="number"
-                            id="experience.maxYears"
-                            name="maxYears"
-                            value={formData.experience.maxYears}
-                            onChange={(e) => handleNestedChange(e, 'experience')}
-                            className={inputClass}
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label htmlFor="requirements.education" className="block text-sm font-medium text-gray-700">Education Requirements</label>
-                    <input
-                        type="text"
-                        id="requirements.education"
-                        name="education"
-
-                        value={formData.requirements.education}
-                        onChange={(e) => handleNestedChange(e, 'requirements')}
-                        className={`${inputClass} ${errors['requirements.education'] ? 'border-red-500' : ''}`}
-                    />
-                    {errors['requirements.education'] && <p className={errorClass}>{errors['requirements.education']}</p>}
-                </div>
-
-                <div>
-                    <label htmlFor="requirements.skills" className="block text-sm font-medium text-gray-700">Required Skills (comma-separated)</label>
-                    <input
-                        type="text"
-                        id="requirements.skills"
-                        name="skills"
-
-                        value={formData.requirements.skills}
-                        onChange={(e) => handleNestedChange(e, 'requirements')}
-                        className={`${inputClass} ${errors['requirements.skills'] ? 'border-red-500' : ''}`}
-                    />
-                    {errors['requirements.skills'] && <p className={errorClass}>{errors['requirements.skills']}</p>}
-                </div>
-
-                <div>
-                    <label htmlFor="requirements.certifications" className="block text-sm font-medium text-gray-700">Required Certifications (comma-separated)</label>
-                    <input
-                        type="text"
-                        id="requirements.certifications"
-                        name="certifications"
-                        value={formData.requirements.certifications}
-                        onChange={(e) => handleNestedChange(e, 'requirements')}
-                        className={inputClass}
-                    />
-                </div>
-
-                <div>
-                    <button
-                        type="submit"
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
-                    >
-                        Post Job
-                    </button>
-                </div>
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-6xl mx-auto p-6"
+    >
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold">Post a New Job</CardTitle>
+          <CardDescription>Fill out the form below to create a new job posting.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Job Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter job title" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Job Description</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Enter job description" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="company.name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter company name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="company.logo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Logo URL</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter logo URL" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter job location" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select job type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Full-time">Full-time</SelectItem>
+                          <SelectItem value="Part-time">Part-time</SelectItem>
+                          <SelectItem value="Contract">Contract</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="salary.min"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Minimum Salary</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter minimum salary" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="salary.max"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Salary</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter maximum salary" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="experience.minYears"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Minimum Years of Experience</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter minimum years" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="experience.maxYears"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Years of Experience</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter maximum years" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="col-span-3 space-y-6">
+                <FormField
+                  control={form.control}
+                  name="requirements.education"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Education Requirements</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter education requirements" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="requirements.skills"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Required Skills</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter required skills (comma-separated)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="requirements.certifications"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Required Certifications</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter required certifications (comma-separated)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </form>
-        </div>
-    )
+          </Form>
+        </CardContent>
+        <CardFooter>
+          <Button type="submit" className="w-full max-w-md mx-auto" onClick={form.handleSubmit(onSubmit)}>
+            Post Job
+          </Button>
+        </CardFooter>
+      </Card>
+    </motion.div>
+  )
 }
 

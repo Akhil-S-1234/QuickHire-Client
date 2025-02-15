@@ -12,7 +12,7 @@ interface ErrorResponse {
 // Create an instance of Axios with custom configuration
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL, // Set your API base URL in .env file
-  timeout: 5000, // Set request timeout
+  timeout: 10000, // Set request timeout
   headers: {
     'Content-Type': 'application/json',
   },

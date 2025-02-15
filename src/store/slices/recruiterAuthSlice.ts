@@ -10,6 +10,7 @@ interface Recruiter {
   email: string;
   phone?: string;
   position?: string;
+  profilePicture?: string;
   companyName?: string;
   createdAt?: string;
 }

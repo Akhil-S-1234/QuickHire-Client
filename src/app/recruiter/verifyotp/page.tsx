@@ -63,7 +63,7 @@ const OTPPage: React.FC = () => {
       if (response.status === 201) {
         setSuccess(true);
         setTimeout(() => {
-          router.push('/recruiter/login');
+          router.push('/recruiter/statusPending');
         }, 2000);
       }
     } catch (err) {

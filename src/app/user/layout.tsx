@@ -38,14 +38,16 @@ function isPublicRoute(pathname: string) {
   const publicRoutes = [
     '/user/login', 
     '/user/register', 
-    '/user/forgot-password', 
-    '/user/home' 
+    '/user/forgotPassword', 
+    '/user/home',
+    '/user/otp',
+    '/user/reset-password'
   ]
   return publicRoutes.includes(pathname)
 }
 
 // Helper function to determine if a route is related to authentication (login/register)
 function isAuthRoute(pathname: string) {
-  const authRoutes = ['/user/login', '/user/register']
+  const authRoutes = ['/user/login', '/user/register', '/user/otp', '/user/forgotPassword', '/user/reset-password' ]
   return authRoutes.includes(pathname)
 }

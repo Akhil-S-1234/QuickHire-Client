@@ -5,6 +5,8 @@ import "./globals.css";
 
 import { ReduxProvider } from '../store/provider';
 import BlockModal from "../components/BlockModal";
+import { Toaster } from "sonner";
+
 
 const workSans = Work_Sans({
   subsets: ["latin"], // Specify the subset for the font
@@ -25,6 +27,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${workSans.variable} antialiased`}>
+      <Toaster richColors position="top-right" />
+
         <ReduxProvider>
           {children}
           <BlockModal />

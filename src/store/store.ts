@@ -9,7 +9,7 @@ import adminAuthReducer from './slices/adminAuthSlice'
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['userAuth', 'recruiterAuth', 'adminAuth'], // Only persist auth reducer
+  // whitelist: ['userAuth', 'recruiterAuth', 'adminAuth'], // Only persist auth reducer
 };
 
 const rootReducer = combineReducers({

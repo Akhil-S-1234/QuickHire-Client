@@ -7,18 +7,38 @@ import axiosInstance from "../../lib/axiosInstance"
 import { useConfirmation } from "../../../hooks/useConfirmation"
 import { ConfirmationBox } from "../../../components/ConfirmationBox"
 
-interface Recruiter {
-  id: string
-  name: string
-  email: string
-  phone: string
-  position: string
-  companyName: string
-  profilePicture: string
-  isBlocked: boolean
-  createdAt: string
-  updatedAt: string
+interface ProfessionalDetails {
+  companyAddress: {
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode: string; // Assuming there's a postalCode in the address.
+  };
+  currentCompany: string;
+  currentDesignation: string;
+  employmentPeriod: {
+    from: string; // Assuming this is a year or ISO date string.
+    to: string; // Assuming this is a year or ISO date string.
+  };
 }
+
+interface Recruiter {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  currentLocation: string;
+  accountStatus: string; // E.g., "active" or "inactive"
+  isBlocked: boolean;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  profilePicture: string; // URL to the profile picture
+  professionalDetails: ProfessionalDetails;
+}
+
 
 export function RecruiterManagement() {
   const [recruiters, setRecruiters] = useState<Recruiter[]>([])
@@ -41,7 +61,10 @@ export function RecruiterManagement() {
       setIsLoading(true)
       try {
         const response = await axiosInstance.get("/api/admin/recruiters")
+        console.log(response.data.data)
         if (response.data) {
+          console.log(response.data.data)
+
           setRecruiters(response.data.data)
         }
       } catch (error) {
@@ -57,9 +80,10 @@ export function RecruiterManagement() {
 
   const filteredRecruiters = recruiters.filter(
     (recruiter) =>
-      recruiter.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recruiter.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recruiter.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       recruiter.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      recruiter.companyName.toLowerCase().includes(searchTerm.toLowerCase())
+      recruiter.professionalDetails.currentCompany.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const indexOfLastRecruiter = currentPage * recruitersPerPage
@@ -91,7 +115,7 @@ export function RecruiterManagement() {
 
     })
 
-    if(!confirmed) return
+    if (!confirmed) return
 
     try {
       await axiosInstance.put(`/api/admin/recruiters/${recruiterId}`, { isBlocked: !isBlocked })
@@ -154,7 +178,7 @@ export function RecruiterManagement() {
                           />
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{recruiter.name}</div>
+                          <div className="text-sm font-medium text-gray-900">{`${recruiter.firstName} ${recruiter.lastName}`}</div>
                         </div>
                       </div>
                     </td>
@@ -162,7 +186,7 @@ export function RecruiterManagement() {
                       <div className="text-sm text-gray-900">{recruiter.email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{recruiter.companyName ? recruiter.companyName : 'N/A'}</div>
+                      <div className="text-sm text-gray-900">{recruiter.professionalDetails.currentCompany ? recruiter.professionalDetails.currentCompany : 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
@@ -236,8 +260,8 @@ export function RecruiterManagement() {
                       key={index}
                       onClick={() => handlePageChange(index + 1)}
                       className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === index + 1
-                          ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                         }`}
                     >
                       {index + 1}
@@ -275,43 +299,64 @@ export function RecruiterManagement() {
                 <div className="flex-shrink-0 mb-4 md:mb-0">
                   <Image
                     src={selectedRecruiter.profilePicture || "https://i.pinimg.com/564x/47/09/80/470980b112a44064cd88290ac0edf6a6.jpg"}
-                    alt={selectedRecruiter.name}
+                    alt={`${selectedRecruiter.firstName} ${selectedRecruiter.lastName}`}
                     width={120}
                     height={120}
                     className="rounded-full"
                   />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-2">{selectedRecruiter.name}</h2>
+                  <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                    {`${selectedRecruiter.firstName} ${selectedRecruiter.lastName}`}
+                  </h2>
                   <p className="text-gray-600 mb-1">{selectedRecruiter.email}</p>
-                  <p className="text-gray-600 mb-1">{selectedRecruiter.phone}</p>
-                  <p className="text-gray-600">{selectedRecruiter.companyName}</p>
+                  <p className="text-gray-600 mb-1">{selectedRecruiter.mobile}</p>
+                  <p className="text-gray-600">{selectedRecruiter.professionalDetails.currentCompany}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold mb-2 text-gray-700">Status</h3>
-                  <p className={`font-medium ${selectedRecruiter.isBlocked ? "text-red-600" : "text-green-600"}`}>
+                  <p
+                    className={`font-medium ${selectedRecruiter.isBlocked ? "text-red-600" : "text-green-600"
+                      }`}
+                  >
                     {selectedRecruiter.isBlocked ? "Blocked" : "Active"}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2 text-gray-700">Position</h3>
-                  <p>{selectedRecruiter.position}</p>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-700">Designation</h3>
+                  <p>{selectedRecruiter.professionalDetails.currentDesignation}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold mb-2 text-gray-700">Joined</h3>
-                  <p className="text-gray-600">{new Date(selectedRecruiter.createdAt).toLocaleDateString()}</p>
+                  <p className="text-gray-600">
+                    {new Date(selectedRecruiter.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold mb-2 text-gray-700">Last Updated</h3>
-                  <p className="text-gray-600">{new Date(selectedRecruiter.updatedAt).toLocaleDateString()}</p>
+                  <p className="text-gray-600">
+                    {new Date(selectedRecruiter.updatedAt).toLocaleDateString()}
+                  </p>
                 </div>
+              </div>
+              <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2 text-gray-700">Company Address</h3>
+                <p className="text-gray-600">
+                  {selectedRecruiter.professionalDetails.companyAddress.addressLine1},{" "}
+                  {selectedRecruiter.professionalDetails.companyAddress.addressLine2},{" "}
+                  {selectedRecruiter.professionalDetails.companyAddress.city},{" "}
+                  {selectedRecruiter.professionalDetails.companyAddress.state},{" "}
+                  {selectedRecruiter.professionalDetails.companyAddress.country},{" "}
+                  {selectedRecruiter.professionalDetails.companyAddress.postalCode}
+                </p>
               </div>
             </div>
           </div>
         </div>
       )}
+
 
       <ConfirmationBox
         isOpen={isToggleOpen}

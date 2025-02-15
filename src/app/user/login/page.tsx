@@ -180,6 +180,11 @@ const Login: React.FC = () => {
                 Register
               </Link>
             </p>
+            <p className="text-sm text-gray-500">
+              <Link href="/user/forgotPassword" className="text-indigo-500 hover:underline">
+              Forgot Password?
+              </Link>
+            </p>
           </div>
         </div>
       </main>

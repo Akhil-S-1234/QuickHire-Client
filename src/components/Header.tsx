@@ -24,14 +24,15 @@ const Header = () => {
   };
 
   const dropdownJobItems = [
-    { label: 'Job Option 1', href: '/jobs/option1' },
-    { label: 'Job Option 2', href: '/jobs/option2' },
+    { label: 'Applied Jobs', href: '/user/appliedJobs' },
+    { label: 'Saved Jobs', href: '/user/savedJobs' },
     { label: 'Job Option 3', href: '/jobs/option3' },
   ];
 
   const dropdownProfileItems = [
     { label: 'Logout', href: '#', onClick: handleLogout },
-    { label: 'Job Option 3', href: '/jobs/option3' },
+    { label: 'Subscription', href: '/user/premium' },
+    { label: 'reset password', href: '/user/resetpassword' },
   ];
 
   return (

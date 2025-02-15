@@ -42,7 +42,14 @@ const Login: React.FC = () => {
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data.message || 'Login failed.');
+        if(err.response.data.message == 'Recruiter review is pending') {
+          router.push('/recruiter/statusPending')
+        } else if(err.response.data.message == 'Recruiter is suspended') {
+          router.push('/recruiter/statusRejected')
+        } else {
+          setError(err.response.data.message || 'Login failed.');
+
+        }
       } else {
         setError('An unexpected error occurred.');
         console.log(err);
