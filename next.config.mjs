@@ -17,6 +17,7 @@
 // next.config.js
 
 export default {
+  reactStrictMode: false, // Disable it only for debugging
   images: {
     remotePatterns: [
       {

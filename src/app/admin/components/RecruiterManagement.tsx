@@ -61,10 +61,7 @@ export function RecruiterManagement() {
       setIsLoading(true)
       try {
         const response = await axiosInstance.get("/api/admin/recruiters")
-        console.log(response.data.data)
         if (response.data) {
-          console.log(response.data.data)
-
           setRecruiters(response.data.data)
         }
       } catch (error) {
@@ -75,8 +72,6 @@ export function RecruiterManagement() {
     }
     fetchRecruiters()
   }, [])
-
-  console.log(recruiters)
 
   const filteredRecruiters = recruiters.filter(
     (recruiter) =>
