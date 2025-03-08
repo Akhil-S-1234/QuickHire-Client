@@ -60,6 +60,10 @@ axiosInstance.interceptors.response.use(
         const { setBlock } = await import('../../store/slices/userAuthSlice');
         store.dispatch(setBlock(true));        
       }
+
+      if(response.data?.data === 'Unauthorized role access.') {
+        window.location.href = '/unauthorized'
+      }
     }
 
     // If the error is not handled, reject the promise

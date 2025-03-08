@@ -4,6 +4,7 @@ import { Work_Sans } from 'next/font/google'
 import "./globals.css";
 
 import { ReduxProvider } from '../store/provider';
+import { SocketProvider } from "@/context/socketProvider";
 import BlockModal from "../components/BlockModal";
 import { Toaster } from "sonner";
 
@@ -27,10 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${workSans.variable} antialiased`}>
-      <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-right" />
 
         <ReduxProvider>
-          {children}
+          <SocketProvider>
+            {children}
+          </SocketProvider>
           <BlockModal />
         </ReduxProvider>
       </body>

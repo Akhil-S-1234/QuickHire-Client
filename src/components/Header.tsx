@@ -2,22 +2,31 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../store/slices/userAuthSlice';
 import { RootState, AppDispatch } from '../store/store';
 import DropdownMenu from './DropDown';
+import Notifications from './Notifications';
+import { useSocket } from '../context/socketProvider'; // Update path as needed
 
 const Header = () => {
   const [isJobsDropdownOpen, setJobsDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated } = useSelector((state: RootState) => state.userAuth);
-  const profilePicture = useSelector((state: RootState) => state.userAuth.user?.profilePicture)
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.userAuth);
+  const profilePicture = user?.profilePicture;
+  const { connect } = useSocket();
 
-  const state = useSelector((state: RootState) => state)
-
-  console.log('State',state)
+  // Connect socket when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      connect({
+        userId: user.id,
+        role: 'jobSeeker'
+      });
+    }
+  }, [isAuthenticated, user, connect]);
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -32,7 +41,7 @@ const Header = () => {
   const dropdownProfileItems = [
     { label: 'Logout', href: '#', onClick: handleLogout },
     { label: 'Subscription', href: '/user/premium' },
-    { label: 'reset password', href: '/user/resetpassword' },
+    { label: 'Reset Password', href: '/user/resetpassword' },
   ];
 
   return (
@@ -58,7 +67,6 @@ const Header = () => {
                 isOpen={isJobsDropdownOpen}
                 align='left'
               />
-
             </div>
             <Link href="/career-advice">
               <span className="text-md font-medium">Career Advice</span>
@@ -72,6 +80,12 @@ const Header = () => {
         <nav className="flex items-center space-x-4 mt-4 md:mt-0">
           {isAuthenticated ? (
             <>
+              {/* Notifications Component */}
+              <div className="mr-4">
+                <Notifications />
+              </div>
+              
+              {/* Profile Dropdown */}
               <div
                 className="relative group"
                 onMouseEnter={() => setProfileDropdownOpen(true)}
@@ -82,12 +96,10 @@ const Header = () => {
                     <Image
                       src={profilePicture || "https://i.pinimg.com/564x/47/09/80/470980b112a44064cd88290ac0edf6a6.jpg"}
                       alt="Profile"
-                      width={32} // Width in pixels (for "w-8")
-                      height={32} // Height in pixels (for "h-8")
+                      width={32}
+                      height={32}
                       className="rounded-full"
                     />
-
-
                   </div>
                 </Link>
 
@@ -96,7 +108,6 @@ const Header = () => {
                   isOpen={isProfileDropdownOpen}
                   align='right'
                 />
-
               </div>
             </>
           ) : (

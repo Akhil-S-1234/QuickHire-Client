@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { Users, BarChart2, Wallet , ShieldCheck } from 'lucide-react';
+import { Users, BarChart2, Wallet , ShieldCheck, Bell } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -12,7 +12,8 @@ export function Sidebar({ activeTab }: SidebarProps) {
     { name: 'Recruiters', icon: Users, value: 'recruiters', href: '/admin/recruiters' },
     { name: 'Recruiter Verification', icon: BarChart2, value: 'recruiterverification', href: '/admin/recruiterVerification' },
     { name: 'Content Moderation', icon: ShieldCheck, value: 'contentmoderation', href: '/admin/contentModeration' },
-    { name: 'Subscription', icon: Wallet , value: 'subscription', href: '/admin/subscription' },
+    { name: 'Subscription', icon: Wallet , value: 'subscription', href: '/admin/subscriptionPlan' },
+    { name: 'Notification', icon: Bell , value: 'notification', href: '/admin/notifications' },
   ];
 
   return (

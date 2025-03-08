@@ -5,7 +5,6 @@ import { Eye, Search, X, ChevronLeft, ChevronRight, AlertTriangle, Shield, Ban }
 import axiosInstance from '../../lib/axiosInstance'
 import { useConfirmation } from "../../../hooks/useConfirmation"
 import { ConfirmationBox } from "../../../components/ConfirmationBox"
-// import  ReportDetailsPage from '../components/ReportDetail'
 import { Badge } from "@/components/ui/badge"
 import {
   Select,
@@ -15,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useRouter } from "next/navigation";
-
 
 interface ReportedJob {
   _id: string
@@ -63,8 +61,9 @@ export function JobModerationPanel() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [reportTypeFilter, setReportTypeFilter] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
-  const [jobsPerPage] = useState(5)
+  const [jobsPerPage] = useState(2)
   const [isLoading, setIsLoading] = useState(false)
+  const [totalJobs, setTotalJobs] = useState(0)
   const router = useRouter();
 
   const {
@@ -77,16 +76,25 @@ export function JobModerationPanel() {
 
   useEffect(() => {
     fetchReportedJobs()
-  }, [])
+  }, [currentPage, statusFilter, reportTypeFilter, searchTerm])
 
   const fetchReportedJobs = async () => {
     setIsLoading(true)
     try {
-      const response = await axiosInstance.get("/api/admin/reported-jobs")
+      // Build query parameters for backend pagination and filtering
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: jobsPerPage.toString(),
+        search: searchTerm,
+        status: statusFilter,
+        reportType: reportTypeFilter
+      })
+      
+      const response = await axiosInstance.get(`/api/admin/reported-jobs?${params}`)
+      
       if (response.data) {
-        setReportedJobs(response.data.data) // Wrap single job in array for consistency
-
-        console.log(response.data.data)
+        setReportedJobs(response.data.data)
+        setTotalJobs(response.data.total)
       }
     } catch (error) {
       console.error("Error fetching reported jobs:", error)
@@ -103,25 +111,19 @@ export function JobModerationPanel() {
     return types
   }
 
-  const filteredJobs = reportedJobs.filter(job => {
-    const matchesSearch = job.jobId?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.jobDetails?.title.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || job.reports.some(r => r.status === statusFilter)
-    const matchesType = reportTypeFilter === "all" || 
-      job.reports.some(r => r.reportType === reportTypeFilter)
-    
-    return matchesSearch && matchesStatus && matchesType
-  })
-
-  const indexOfLastJob = currentPage * jobsPerPage
-  const indexOfFirstJob = indexOfLastJob - jobsPerPage
-  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob)
-  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage)
-
+  const totalPages = Math.ceil(totalJobs / jobsPerPage)
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber)
   }
+  
+  // Debounce search input to prevent too many API calls
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchReportedJobs()
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm])
 
   const handleJobAction = async (jobId: string, action: 'review' | 'resolve' | 'hide') => {
     const actionMap = {
@@ -163,7 +165,10 @@ export function JobModerationPanel() {
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <h1 className="text-3xl font-bold text-gray-800">Content Moderation</h1>
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(value) => {
+            setStatusFilter(value)
+            setCurrentPage(1) // Reset to first page when filter changes
+          }}>
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -175,7 +180,10 @@ export function JobModerationPanel() {
             </SelectContent>
           </Select>
 
-          <Select value={reportTypeFilter} onValueChange={setReportTypeFilter}>
+          <Select value={reportTypeFilter} onValueChange={(value) => {
+            setReportTypeFilter(value)
+            setCurrentPage(1) // Reset to first page when filter changes
+          }}>
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
@@ -194,7 +202,10 @@ export function JobModerationPanel() {
               type="text"
               placeholder="Search jobs..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setCurrentPage(1) // Reset to first page when search changes
+              }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -219,12 +230,12 @@ export function JobModerationPanel() {
                 <tr>
                   <td colSpan={6} className="px-6 py-4 text-center">Loading...</td>
                 </tr>
-              ) : currentJobs.length === 0 ? (
+              ) : reportedJobs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-4 text-center">No reported jobs found</td>
                 </tr>
               ) : (
-                currentJobs.map((job) => (
+                reportedJobs.map((job) => (
                   <tr key={job._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{job.jobDetails.title}</div>
@@ -260,7 +271,6 @@ export function JobModerationPanel() {
                         >
                           <Eye className="h-5 w-5" />
                         </button>
-                       
                       </div>
                     </td>
                   </tr>

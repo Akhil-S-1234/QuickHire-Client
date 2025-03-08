@@ -41,7 +41,7 @@ const CreateAccount: React.FC = () => {
 
         try {
             // Trigger Google sign-in
-            const result = await signIn("google", { callbackUrl: '/' }); // Specify the callback URL
+            const result = await signIn("google", { callbackUrl: '/user/home' }); // Specify the callback URL
 
             if (result?.error) {
                 console.error('Sign-in failed:', result.error);

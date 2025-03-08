@@ -7,9 +7,11 @@ import Link from 'next/link';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import { setUserCredentials, setBlock } from '../../../store/slices/userAuthSlice';
+import { setUserCredentials, setBlock, fetchSubscription } from '../../../store/slices/userAuthSlice';
+import { AppDispatch } from '@/store/store';
 import AxiosInstance from '../../lib/axiosInstance';
 import { signIn, getSession } from 'next-auth/react'
+import { useSocket } from '@/context/socketProvider';
 
 
 import GoogleLoginButton from '../../../components/GoogleLoginButton';
@@ -19,7 +21,8 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter(); // Initialize useRouter
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
+  const { connect } = useSocket()
 
 
   const handleGoogleSignIn = async () => {
@@ -50,6 +53,8 @@ const Login: React.FC = () => {
           throw new Error('Failed to save user');
         }
 
+        console.log(response.data.data,'hiii')
+
         // Dispatch credentials to Redux
         const user = {
           email: session.user.email ?? '',
@@ -57,7 +62,17 @@ const Login: React.FC = () => {
           profilePicture: session.user.image ?? '',
         };
 
+        console.log(user)
+
         dispatch(setUserCredentials({ user }));
+        dispatch(fetchSubscription())
+
+        connect({
+          userId: response.data.data.id,
+          role: 'jobSeeker'
+        });
+
+        // dispatch(fetchSubscription(user.id))
         console.log('Sign-in successful:', result);
       }
     } catch (error) {
@@ -95,6 +110,13 @@ const Login: React.FC = () => {
         console.log(response.data, 'data')
         const { user } = response.data.data
         dispatch(setUserCredentials({ user }))
+        dispatch(fetchSubscription())
+
+        connect({
+          userId: user.id,
+          role: 'jobSeeker'
+        });
+
         router.push('/user/home');
       }
     } catch (err) {
